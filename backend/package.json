@@ -1,0 +1,18 @@
+{
+    "scripts": {
+        "start": "node app.js"
+    },
+    "dependencies": {
+        "axios": "^1.10.0",
+        "bcrypt": "^6.0.0",
+        "cors": "^2.8.5",
+        "express": "^5.1.0",
+        "fs": "^0.0.1-security",
+        "jsonwebtoken": "^9.0.2",
+        "multer": "^2.0.1",
+        "nodemailer": "^7.0.4",
+        "pg": "^8.16.3",
+        "pool": "^0.4.1",
+        "sequelize": "^6.37.7"
+    }
+}

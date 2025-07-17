@@ -1,0 +1,36 @@
+
+:root {
+  --bulma-primary-h: 357deg;
+  --bulma-link-h: 0deg;
+  --bulma-link-s: 99%;
+  --bulma-link-l: 38%;
+  --bulma-success-h: 144deg;
+  --bulma-success-s: 61%;
+  --bulma-success-l: 55%;
+  --bulma-warning-h: 20deg;
+  --bulma-warning-s: 95%;
+  --bulma-warning-l: 54%;
+  --bulma-danger-h: 360deg;
+  --bulma-danger-l: 59%;
+  --bulma-info-h: 357deg;
+   --bulma-info-s: 100%;
+   --bulma-info-l: 76%;
+
+}
+.user-name{
+   font-weight: bold;
+   font-size: 1.2rem;
+   color: var( --bulma-danger-h) !important;
+}
+
+
+.md-editor-hover {
+  transition: box-shadow 0.2s, border-color 0.2s;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: none;
+}
+.md-editor-hover:hover {
+  border-color: #ed103c;
+  box-shadow: 0 0 8px #ed103c33;
+}

@@ -1,0 +1,27 @@
+/* filepath: c:\gymAppNext\frontend\src\app\globals.css */
+@import "bulma/css/bulma.min.css";
+@import "./navbar.css";
+@import "./login.css";
+@import "./register.css";
+
+:root {
+  --main-red: #7d2927;
+  --main-black: #222;
+  --main-white: #fff;
+}
+
+body.light {
+  background: var(--main-white);
+  color: var(--main-black);
+}
+
+body.dark {
+  background: #181818;
+  color: var(--main-white);
+}
+
+/* Markdown editor red highlight */
+.markdown-editor-highlight {
+  border: 2px solid var(--main-red) !important;
+  border-radius: 4px;
+}
