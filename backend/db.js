@@ -2,8 +2,8 @@ const { Pool } = require('pg');
 
 const pool = new Pool({
   user: 'loynis',
-  host: 'localhost', // Docker Compose service name for the database
-  database: 'gymDB',
+  host: 'localhost',
+  database: 'gymDB', // to samo w docker-compose
   password: 'loynis',
   port: 5432,
 });

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './AutoDietQuestions.css'; // Assuming you have a CSS file for styling
 
 const questions = [
   { id: 'age', question: 'Ile masz lat?', type: 'number' },
@@ -12,10 +11,6 @@ const questions = [
   { id: 'rate', question: 'Jak szybko chcesz osiągnąć cel ( 0.X kg na tydzień)?', type: 'number' },
 ];
 
-//after delay from last click, to blur funtion
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));  
-
-
 const AutoDietQuestions = ({ onComplete }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
@@ -25,17 +20,12 @@ const AutoDietQuestions = ({ onComplete }) => {
   const handleChange = (e) => {
     let value = e.target.value;
     if (e.target.type === 'number') {
-      // Allow user to type freely, but validate on blur
       value = e.target.value === '' ? '' : Number(e.target.value);
     }
     setAnswers(prev => ({ ...prev, [currentQuestion.id]: value }));
   };
 
-
-
-
   const handleBlur = (e) => {
-   
     let value = e.target.value === '' ? '' : Number(e.target.value);
     if (value !== '') {
       if (currentQuestion.id === 'weight') {
@@ -53,9 +43,7 @@ const AutoDietQuestions = ({ onComplete }) => {
       }
       setAnswers(prev => ({ ...prev, [currentQuestion.id]: value }));
     }
-    
   };
-
 
   const handleNext = async () => {
     if (currentIndex < questions.length - 1) {
@@ -63,15 +51,18 @@ const AutoDietQuestions = ({ onComplete }) => {
     } else {
       // Submit answers to backend to generate diet plan
       try {
-        const response = await axios.post('/api/diet/auto', answers);
+        const response = await axios.post('http://localhost:5000/api/diet/auto',
+          answers,
+          { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        );
         alert(response.data.message);
-        onComplete();
+        if (onComplete) onComplete();
       } catch (error) {
         alert('Błąd podczas tworzenia planu diety');
+        console.log(error);
       }
     }
   };
-
 
   return (
     <div className="box">
@@ -86,22 +77,18 @@ const AutoDietQuestions = ({ onComplete }) => {
           </select>
         </div>
       ) : (
-      <input
-        className="input is-danger "
-        type={currentQuestion.type}
-        value={answers[currentQuestion.id] || ''}
-        onBlur={handleBlur}
-        onChange={handleChange}
-        >
-        
-        </input>
-        
+        <input
+          className="input is-danger "
+          type={currentQuestion.type}
+          value={answers[currentQuestion.id] || ''}
+          onBlur={handleBlur}
+          onChange={handleChange}
+        />
       )}
       <button className="button is-link " onClick={handleNext} disabled={answers[currentQuestion.id] === undefined || answers[currentQuestion.id] === ''}>
         {currentIndex === questions.length - 1 ? 'Zakończ' : 'Dalej'}
       </button>
     </div>
-    
   );
 };
 

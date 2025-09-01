@@ -26,20 +26,20 @@ exports.register = async (req, res) => {
 
     
 
-    // Wygeneruj token aktywacyjny
-    const token = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    // Zapisz token do tabeli
+    const token = Math.floor(100000 + Math.random() * 900000).toString(); // generate random token
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+
+    // save to table
     await pool.query(
       `INSERT INTO user_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`,
       [userId, token, expiresAt]
     );
 
-    // Wyślij token na maila
+    // send token on email
     await require('../services/mailService').sendTokenEmail(email, token, 'activation');
 
-    // Zamaskuj e-mail do wyświetlenia w frontendzie
+    // mask email on front 
     const maskedEmail = maskEmail(email);
 
     res.status(201).json({
@@ -47,7 +47,7 @@ exports.register = async (req, res) => {
       maskedEmail
     });
   } catch (error) {
-    console.error(error); // <-- dodaj to, by widzieć błąd w konsoli!
+    console.error(error); 
     res.status(500).json({ message: 'Server error during registration' });
   }
 };
@@ -90,18 +90,18 @@ exports.login = async (req, res) => {
                 const token = Math.floor(100000 + Math.random() * 900000).toString();
                 const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-                // Save token in password_reset_tokens table with user_id and expires_at
+                // save token in password_reset_tokens table with user_id and expires_at
                 await pool.query(
                     `INSERT INTO user_tokens (user_id, token, expires_at)
                      VALUES ($1, $2, $3)`,
                     [user.id, token, expiresAt]
                 );
 
-                // Send token via sms or email
+                // send token via sms or email
                 if (user.two_factor_method === 'email') {
                     await mailService.sendTokenEmail(user.email, token, '2FA');
                 } else if (user.two_factor_method === 'sms') {
-                    // TODO: Implement SMS sending service here
+                    // todo: here will be soon sms veryf
                     console.log(`Sending 2FA token ${token} to phone ${user.phone}`);
                 }
 

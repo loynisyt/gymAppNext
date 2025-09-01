@@ -1,102 +1,152 @@
-const axios = require('axios');
-
-/**
- * Calculate Basal Metabolic Rate (BMR) using Mifflin-St Jeor Equation
- * @param {Object} userData - User data including weight (kg), height (cm), age, sex ('male' or 'female')
- * @returns {number} BMR calories
- */
-function calculateBMR({ weight, height, age, sex }) {
-  if (sex === 'male') {
-    return 10 * weight + 6.25 * height - 5 * age + 5;
-  } else {
-    return 10 * weight + 6.25 * height - 5 * age - 161;
-  }
-}
-
-/**
- * Calculate Total Daily Energy Expenditure (TDEE) based on activity level
- * @param {number} bmr - Basal Metabolic Rate
- * @param {string} activityLevel - One of ['sedentary', 'light', 'moderate', 'active', 'very_active']
- * @returns {number} TDEE calories
- */
-function calculateTDEE(bmr, activityLevel) {
-  const activityMultipliers = {
+async function generateDietPlan({ age, weight, height, sex, activityLevel, goal, rate }) {
+  // PAL (Physical Activity Level) mapping
+  const PAL_MAP = {
     sedentary: 1.2,
     light: 1.375,
     moderate: 1.55,
     active: 1.725,
-    very_active: 1.9,
+    very_active: 1.9
   };
-  return bmr * (activityMultipliers[activityLevel] || 1.2);
-}
+  const pal = PAL_MAP[activityLevel] || 1.2;
 
-/**
- * Calculate calorie goal based on user's goal to lose or gain weight
- * @param {number} tdee - Total Daily Energy Expenditure
- * @param {string} goal - One of ['lose', 'maintain', 'gain']
- * @param {number} rate - Rate of weight change in kg per week (e.g., 0.5)
- * @returns {number} calorie goal
- */
-function calculateCalorieGoal(tdee, goal, rate) {
-  // 1 kg fat ~ 7700 calories
-  const calorieChangePerDay = (7700 * rate) / 7;
-  if (goal === 'lose') {
-    return Math.max(tdee - calorieChangePerDay, 1200); // minimum calories
-  } else if (goal === 'gain') {
-    return tdee + calorieChangePerDay;
+  // Obliczenie BMR (podstawowa przemiana materii)
+  let bmr;
+  if (sex === "female" || sex === "f") {
+    bmr = 655 + (9.6 * weight) + (1.8 * height) - (4.7 * age);
   } else {
-    return tdee;
+    bmr = 66 + (13.7 * weight) + (5 * height) - (6.8 * age);
   }
-}
+  
+  // CPM = BMR * PAL (całkowita przemiana materii)
+  let calories_goal = Math.round(bmr * pal);
 
-/**
- * Generate diet plan based on user data and activity
- * @param {Object} userData - Includes weight, height, age, sex, activityLevel, goal, rate
- * @returns {Object} diet plan with calories_goal, protein_min/max, carbs_min/max, fats_min/max, remaining_calories
- */
-async function generateDietPlan(userData) {
-  const { weight, height, age, sex, activityLevel, goal, rate } = userData;
+  // Dostosowanie kalorii do celu (utrata/utrzymanie/przyrost masy)
+  const weekly_calorie_adjustment = Math.round((rate || 0.5) * 7700 / 7);
+  if (goal === "lose") calories_goal -= weekly_calorie_adjustment;
+  if (goal === "gain") calories_goal += weekly_calorie_adjustment;
 
-  const bmr = calculateBMR({ weight, height, age, sex });
-  const tdee = calculateTDEE(bmr, activityLevel);
-  const calories_goal = calculateCalorieGoal(tdee, goal, rate);
+  // Makroskładniki
+  const protein_min = Math.round(weight * 1.6);
+  const protein_max = Math.round(weight * 2.2);
+  const protein_kcal = ((protein_min + protein_max) / 2) * 4;
+  
+  const fats_min = Math.round(weight * 0.8);
+  const fats_max = Math.round(weight * 1.2);
+  const fats_kcal = ((fats_min + fats_max) / 2) * 9;
+  
+  const remaining_calories = calories_goal - protein_kcal - fats_kcal;
+  const carbs_avg = Math.max(0, Math.round(remaining_calories / 4));
+  const carbs_min = Math.round(carbs_avg * 0.8);
+  const carbs_max = Math.round(carbs_avg * 1.2);
 
-  // Macronutrient distribution (example percentages)
-  const proteinPercent = 0.3; // 30% of calories
-  const carbsPercent = 0.4;   // 40% of calories
-  const fatsPercent = 0.3;    // 30% of calories
+  // Mikroskładniki - obliczenia na podstawie wieku, płci i zapotrzebowania
+  const calculateVitaminA = () => {
+    if (sex === "female" || sex === "f") return { min: 700, max: 900 };
+    return { min: 900, max: 1100 };
+  };
 
-  // Calculate grams (1g protein = 4 cal, 1g carbs = 4 cal, 1g fat = 9 cal)
-  const proteinCalories = calories_goal * proteinPercent;
-  const carbsCalories = calories_goal * carbsPercent;
-  const fatsCalories = calories_goal * fatsPercent;
+  const calculateVitaminC = () => {
+    if (age > 18) return { min: 75, max: 90 };
+    return { min: 65, max: 75 };
+  };
 
-  const protein_min = Math.floor(proteinCalories / 4 * 0.9);
-  const protein_max = Math.ceil(proteinCalories / 4 * 1.1);
-  const carbs_min = Math.floor(carbsCalories / 4 * 0.9);
-  const carbs_max = Math.ceil(carbsCalories / 4 * 1.1);
-  const fats_min = Math.floor(fatsCalories / 9 * 0.9);
-  const fats_max = Math.ceil(fatsCalories / 9 * 1.1);
+  const calculateCalcium = () => {
+    if (age >= 19 && age <= 50) return { min: 1000, max: 1200 };
+    if (age > 50) return { min: 1200, max: 1500 };
+    return { min: 1300, max: 1500 };
+  };
 
-  // Initially, remaining calories equals calories_goal
-  const remaining_calories = calories_goal;
+  const calculateMagnesium = () => {
+    if (sex === "female" || sex === "f") {
+      if (age >= 19 && age <= 30) return { min: 310, max: 350 };
+      if (age > 30) return { min: 320, max: 360 };
+    } else {
+      if (age >= 19 && age <= 30) return { min: 400, max: 450 };
+      if (age > 30) return { min: 420, max: 470 };
+    }
+    return { min: 300, max: 400 };
+  };
 
-  // Optionally, integrate with Polish food API to add calories info (stub)
-  // Example API call (replace with real API)
-  // const foodApiResponse = await axios.get('https://api.polishfood.example.com/nutrition');
+  const calculateFiber = () => {
+    // 14g błonnika na 1000 kcal
+    const fiber_per_1000kcal = 14;
+    const fiber_base = Math.round((calories_goal / 1000) * fiber_per_1000kcal);
+    return {
+      min: Math.round(fiber_base * 0.8),
+      max: Math.round(fiber_base * 1.2)
+    };
+  };
+
+  const calculateSalt = () => {
+    // Zalecenia WHO: mniej niż 5g soli dziennie (2000mg sodu)
+    const salt_max = 5000;
+    const salt_min = 2500;
+    return {
+      min: salt_min,
+      max: salt_max
+    };
+  };
+
+  const calculateIron = () => {
+    if (sex === "female" || sex === "f") {
+      if (age >= 19 && age <= 50) return { min: 18, max: 22 };
+      return { min: 8, max: 12 };
+    }
+    return { min: 8, max: 12 };
+  };
+
+  const calculateZinc = () => {
+    if (sex === "female" || sex === "f") return { min: 8, max: 12 };
+    return { min: 11, max: 15 };
+  };
+
+  const vitaminA = calculateVitaminA();
+  const vitaminC = calculateVitaminC();
+  const calcium = calculateCalcium();
+  const magnesium = calculateMagnesium();
+  const fiber = calculateFiber();
+  const salt = calculateSalt();
+  const iron = calculateIron();
+  const zinc = calculateZinc();
 
   return {
-    calories_goal: Math.round(calories_goal),
+    // Podstawowe informacje
+    bmr: Math.round(bmr),
+    tdee: Math.round(bmr * pal),
+    calories_goal,
+    weekly_adjustment: weekly_calorie_adjustment,
+    
+    // Makroskładniki (g)
     protein_min,
     protein_max,
     carbs_min,
     carbs_max,
     fats_min,
     fats_max,
-    remaining_calories,
+    
+    // Mikroskładniki (mg/mcg)
+    vitamin_a_min: vitaminA.min,
+    vitamin_a_max: vitaminA.max,
+    vitamin_c_min: vitaminC.min,
+    vitamin_c_max: vitaminC.max,
+    calcium_min: calcium.min,
+    calcium_max: calcium.max,
+    magnesium_min: magnesium.min,
+    magnesium_max: magnesium.max,
+    iron_min: iron.min,
+    iron_max: iron.max,
+    zinc_min: zinc.min,
+    zinc_max: zinc.max,
+    fiber_min: fiber.min,
+    fiber_max: fiber.max,
+    salt_min: salt.min,
+    salt_max: salt.max,
+    
+    // Procentowy rozkład makroskładników
+    protein_percentage: Math.round((protein_kcal / calories_goal) * 100),
+    fats_percentage: Math.round((fats_kcal / calories_goal) * 100),
+    carbs_percentage: Math.round((remaining_calories / calories_goal) * 100)
   };
 }
 
-module.exports = {
-  generateDietPlan,
-};
+module.exports = { generateDietPlan };

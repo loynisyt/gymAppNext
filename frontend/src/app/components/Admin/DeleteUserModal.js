@@ -17,6 +17,7 @@ const DeleteUserModal = ({ user, onClose, onConfirm }) => {
                 </div>
             </div>
             <button className="modal-close is-large" aria-label="close" onClick={onClose}></button>
+            
         </div>
     );
 };

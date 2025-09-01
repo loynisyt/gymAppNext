@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const db = require('../db'); // Assume a db module for querying the database
+const db = require('../db'); 
 
 const TOKEN_EXPIRATION_HOURS = 24;
 
@@ -50,6 +50,7 @@ async function removeAllExpiredTokens() {
   `;
   await db.query(query);
 }
+
 
 module.exports = {
   storeToken,

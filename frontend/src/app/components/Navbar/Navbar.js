@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import logo from "../../../../public/logo.ico";
 import lightModeIcon from "../../../../public/sun.svg";
 import darkModeIcon from "../../../../public/moon.svg";
-import "./Navbar.css"; // Assuming you have a CSS file for styling
+import "./Navbar.css"; 
 
 export default function Navbar({ loggedIn, onLogout, role, activePanel, setActivePanel }) {
   const [mode, setMode] = useState("light");
@@ -50,7 +50,7 @@ export default function Navbar({ loggedIn, onLogout, role, activePanel, setActiv
           )}
         </button>
         <button
-          className={`burger-menu-button${menuOpen ? " open" : ""}`}
+          className={` mt-5 burger-menu-button${menuOpen ? " open" : ""}`}
           onClick={toggleMenu}
           aria-label="Toggle menu"
         >
@@ -62,7 +62,7 @@ export default function Navbar({ loggedIn, onLogout, role, activePanel, setActiv
       <div className={`navbar-end${menuOpen ? " open" : ""}`}>
         {loggedIn && (
           <button
-            className={`button is-white${activePanel === "profile" ? " is-info" : ""}`}
+            className={`mr-4 button is-white${activePanel === "profile" ? " is-info" : ""}`}
             onClick={() => setActivePanel("profile")}
           >
             Profil
@@ -70,7 +70,7 @@ export default function Navbar({ loggedIn, onLogout, role, activePanel, setActiv
         )}
         {loggedIn && (
           <button
-            className={`button is-white${activePanel === "offers" ? " is-info" : ""}`}
+            className={`mr-4 button is-white${activePanel === "offers" ? " is-info" : ""}`}
             onClick={() => setActivePanel("offers")}
           >
             Nasza oferta
@@ -78,7 +78,7 @@ export default function Navbar({ loggedIn, onLogout, role, activePanel, setActiv
         )}
         {loggedIn && (
           <button
-            className={`button is-white${activePanel === "diet" ? " is-info" : ""}`}
+            className={`mr-4 button is-white${activePanel === "diet" ? " is-info" : ""}`}
             onClick={() => setActivePanel("diet")}
           >
             Dieta
@@ -86,7 +86,7 @@ export default function Navbar({ loggedIn, onLogout, role, activePanel, setActiv
         )}
         {loggedIn && role === "admin" && (
           <button
-            className={`button is-white${activePanel === "admin" ? " is-info" : ""}`}
+            className={` mr-4 button is-white${activePanel === "admin" ? " is-info" : ""}`}
             onClick={() => setActivePanel("admin")}
           >
             Panel Admina
@@ -94,14 +94,14 @@ export default function Navbar({ loggedIn, onLogout, role, activePanel, setActiv
         )}
         {loggedIn && role === "trener" && (
           <button
-            className={`button is-white${activePanel === "trener" ? " is-info" : ""}`}
+            className={` mr-4 button is-white${activePanel === "trener" ? " is-info" : ""}`}
             onClick={() => setActivePanel("trener")}
           >
             Panel Trenera
           </button>
         )}
         {loggedIn ? (
-          <button className="button is-light" onClick={onLogout}>
+          <button className="button is-light mr-4" onClick={onLogout}>
             Wyloguj
           </button>
         ) : null}
